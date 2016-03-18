@@ -33,11 +33,10 @@ public class DoodleView extends View {
     private Canvas drawCanvas;
     //canvas bitmap
     private Bitmap canvasBitmap;
-   // private float brushSize, lastBrushSize;
 
-    private int lastColor;
+
+    private int lastColor = -1;
     private int paintAlpha = 255;
-
     private int brushSize = 50;
     private int eraseSize = 50;
 
@@ -62,8 +61,6 @@ public class DoodleView extends View {
 
         drawPath = new Path();
         drawPaint = new Paint();
-        //brushSize = getResources().getInteger(R.integer.medium_size);
-        //lastBrushSize = brushSize;
         drawPaint.setStrokeWidth(brushSize);
         drawPaint.setColor(paintColor);
         drawPaint.setAntiAlias(true);
@@ -73,14 +70,14 @@ public class DoodleView extends View {
         drawPaint.setStrokeCap(Paint.Cap.ROUND);
 
         canvasPaint = new Paint(Paint.DITHER_FLAG);
-        //canvasPaint.setColor(0xFFFFFFFF);
-        //canvasPaint.
-        /*
-        _paintDoodle.setColor(Color.RED);
-        _paintDoodle.setAntiAlias(true);
-        _paintDoodle.setStyle(Paint.Style.STROKE);*/
+
     }
 
+    /**
+     * These three functions are used when the user selects to erase
+     * the canvas. Like brush size, users will be able to set the size
+     * of the eraser as well!
+     */
     public void setErase(boolean isErase){
         //set erase true or false
         erase=isErase;
@@ -90,7 +87,13 @@ public class DoodleView extends View {
             //drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         }
         else{
-            drawPaint.setColor(lastColor);
+            //Use paintColor when we are not coming back from "erase mode."
+            if(lastColor == -1) {
+                drawPaint.setColor(paintColor);
+            }else{
+                drawPaint.setColor(lastColor);
+                lastColor = -1;
+            }
             drawPaint.setXfermode(null);
         }
     }
@@ -104,6 +107,10 @@ public class DoodleView extends View {
         return eraseSize;
     }
 
+    /***
+     * Functions used to set and get the alpha levels of the canvas.
+     * This is used to set opacity.
+     */
     public int getPaintAlpha(){
         return Math.round((float)paintAlpha/255*100);
     }
@@ -114,6 +121,10 @@ public class DoodleView extends View {
         drawPaint.setAlpha(paintAlpha);
     }
 
+    /**
+     * These two functions are used to set and get the brush size
+     * on the canvas
+     */
     public void setBrushSize(int newSize){
         brushSize = newSize;
         drawPaint.setStrokeWidth(brushSize);
@@ -122,32 +133,11 @@ public class DoodleView extends View {
     public int getBrushSize(){
         return brushSize;
     }
-    /*
-    public void setBrushSize(float newSize){
-        //update size
-        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                newSize, getResources().getDisplayMetrics());
-        brushSize=pixelAmount;
-        drawPaint.setStrokeWidth(brushSize);
-    }
-
-    public void setLastBrushSize(float lastSize){
-        lastBrushSize=lastSize;
-    }
-    public float getLastBrushSize(){
-        return lastBrushSize;
-    }*/
 
     @Override
     public void onDraw(Canvas canvas) {
-
         canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
         canvas.drawPath(drawPath, drawPaint);
-
-        /*super.onDraw(canvas);
-
-        //canvas.drawLine(0, 0, getWidth(), getHeight(), _paintDoodle);
-        canvas.drawPath(_path, _paintDoodle);*/
     }
 
     @Override
@@ -182,8 +172,11 @@ public class DoodleView extends View {
         return true;
     }
 
+    /**
+     * Two methods to set the color of the drawingCanvas
+     * allowing you to pass in a color as a string or an int.
+     */
     public void setColor(String newColor){
-        //set color
         invalidate();
         paintColor = Color.parseColor(newColor);
         drawPaint.setColor(paintColor);
@@ -202,6 +195,9 @@ public class DoodleView extends View {
     }
 
 
+    /**
+     * Function used to clear the canvas and start afresh!
+     */
     public void startNew(){
         drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
         invalidate();

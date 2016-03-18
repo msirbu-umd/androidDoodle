@@ -36,35 +36,21 @@ import android.view.View.OnClickListener;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import yuku.ambilwarna.AmbilWarnaDialog;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorManager;
 
-
-public class MainActivity extends AppCompatActivity implements OnClickListener, SensorEventListener {
+public class MainActivity extends AppCompatActivity implements OnClickListener{
 
 
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-
-    private SensorManager senSensorManager;
-    private Sensor senAccelerometer;
     private DoodleView drawView;
-    private ImageButton currPaint, drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn;
-    private float smallBrush, mediumBrush, largeBrush;
-    int color = 0xffffff00;
+    private ImageButton drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn;
 
-    private long lastUpdate = 0;
-    private float last_x, last_y, last_z;
-    private static final int SHAKE_THRESHOLD = 600;
 
     @Override
     public void onClick(View view){//respond to clicks
+
+
+        //Opacity button is clicked
         if(view.getId()==R.id.opacity_btn){
 
             final Dialog seekDialog = new AppCompatDialog(this);
@@ -75,15 +61,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             final SeekBar seekOpq = (SeekBar)seekDialog.findViewById(R.id.opacity_seek);
 
             seekOpq.setMax(100);
-
             int currLevel = drawView.getPaintAlpha();
             seekTxt.setText(currLevel+"%");
             seekOpq.setProgress(currLevel);
 
+            //Actions to take as the seekbar changes
             seekOpq.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if(progress < 5){
+                    if (progress < 5) {
                         progress = 5;
                     }
                     seekTxt.setText(Integer.toString(progress) + "%");
@@ -98,11 +84,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                 }
             });
 
+            //Once button is clicked set the opacity level appropriately.
             Button opqBtn = (Button)seekDialog.findViewById(R.id.opq_ok);
 
             opqBtn.setOnClickListener(new OnClickListener(){
                 @Override
                 public void onClick(View v) {
+                    //Set a minimum opacity level 5%
                     if(seekOpq.getProgress()  > 5) {
                         drawView.setPaintAlpha(seekOpq.getProgress());
                     }else{
@@ -114,55 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
             seekDialog.show();
 
-
-            /*
-            final Dialog brushDialog = new AppCompatDialog(this);
-            brushDialog.setContentView(R.layout.brush_chooser);
-            brushDialog.setTitle("BRUSH SIZE:");
-            brushDialog.show();
-
-
-            ImageButton smallBtn = (ImageButton)brushDialog.findViewById(R.id.small_brush);
-            smallBtn.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    drawView.setBrushSize(smallBrush);
-                    drawView.setLastBrushSize(smallBrush);
-                    brushDialog.dismiss();
-                }
-            });
-
-            ImageButton mediumBtn = (ImageButton)brushDialog.findViewById(R.id.medium_brush);
-            mediumBtn.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    drawView.setBrushSize(mediumBrush);
-                    drawView.setLastBrushSize(mediumBrush);
-                    brushDialog.dismiss();
-                }
-            });
-
-            ImageButton largeBtn = (ImageButton)brushDialog.findViewById(R.id.large_brush);
-            largeBtn.setOnClickListener(new OnClickListener(){
-                @Override
-                public void onClick(View v) {
-                    drawView.setBrushSize(largeBrush);
-                    drawView.setLastBrushSize(largeBrush);
-                    brushDialog.dismiss();
-                }
-            });
-
-            /*
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            alertDialog.setTitle("Alert");
-            alertDialog.setMessage("Alert message to be shown");
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            alertDialog.show();*/
+        //The button involved with brush size is clicked.
         }else if(view.getId()==R.id.draw_btn){
             final Dialog brushDialog = new AppCompatDialog(this);
             brushDialog.setTitle("Brush Width:");
@@ -175,8 +115,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             int currBrush = drawView.getBrushSize();
             seekTxt.setText(currBrush + "px");
             seekBrush.setProgress(currBrush);
-
-
 
             seekBrush.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
@@ -208,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                     }else{
                         drawView.setBrushSize(5);
                     }
+                    //When the button is clicked we turn off erasing mode
+                    //(assuming it is turned on in the first place).
                     drawView.setErase(false);
                     opacityBtn.setEnabled(true);
                     opacityBtn.setAlpha(1f);
@@ -221,6 +161,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
             brushDialog.show();
 
+        //The section devoted to when the erase button is clicked. Turns
+        // the doodle into erase mode! Like draw mode, users can select
+        // the size of the eraser as well.
         }else if(view.getId()==R.id.erase_btn){
             final Dialog brushDialog = new AppCompatDialog(this);
             brushDialog.setTitle("Erase Width:");
@@ -233,8 +176,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             int currBrush = drawView.getEraseSize();
             seekTxt.setText(currBrush + "px");
             seekBrush.setProgress(currBrush);
-
-
 
             seekBrush.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
@@ -266,31 +207,42 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                     }else{
                         drawView.setEraseSize(5);
                     }
+                    //Go into eraser mode and disable the opacity and
+                    //colorwheel buttons (so the user knows that they are
+                    //in a different mode). To exit erase mode, they need
+                    //to click on the draw button (e.g. the button that
+                    //changes the brush side).
                     drawView.setErase(true);
                     opacityBtn.setEnabled(false);
                     opacityBtn.setAlpha(0.5f);
                     colorwheelBtn.setEnabled(false);
-                    colorwheelBtn.setAlpha(.5f);
+                    colorwheelBtn.setAlpha(0.5f);
                     brushDialog.dismiss();
                 }
             });
 
             brushDialog.show();
+            //The colorwheel button is clicked; this allows the user to
+            //select the color of the line they draw. The dialog
+            //is taken from https://github.com/yukuku/ambilwarna
         }else if(view.getId()==R.id.colorwheel_btn){
 
             AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, drawView.getColor(), new AmbilWarnaDialog.OnAmbilWarnaListener() {
                 @Override
                 public void onOk(AmbilWarnaDialog dialog, int color) {
-                    Toast.makeText(getApplicationContext(), "ok", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Color changed", Toast.LENGTH_SHORT).show();
                     drawView.setColorInt(color);
                 }
 
                 @Override
                 public void onCancel(AmbilWarnaDialog dialog) {
-                    Toast.makeText(getApplicationContext(), "cancel", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Color NOT changed", Toast.LENGTH_SHORT).show();
                 }
             });
             dialog.show();
+            //Button that clears the drawing. This section calls the startNew() function
+            //in DoodleView to clear the canvas. Of course, it make sures to ask
+            //users to confirm that they want to clear the canvas.
         }else if(view.getId() == R.id.new_btn){
             AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
             newDialog.setTitle("New drawing");
@@ -309,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             });
 
             newDialog.show();
+            //The button that saves an image to the gallery.
         }else if(view.getId()==R.id.save_btn){
             //save drawing
             AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
@@ -317,76 +270,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     Log.d("testing", "I GOT IT!");
-
+                    //This method handles the permission and ultimately calls
+                    //savePicture()
                     checkStoragePermissions();
-
-                    /*drawView.setDrawingCacheEnabled(true);
-                    Bitmap bm = drawView.getDrawingCache();
-
-                    Log.d("testing", bm.toString());
-
-                    File fPath = Environment.getExternalStorageDirectory();
-                    File f = null;
-                    f = new File(fPath, "drawPic1.png");
-
-                    Log.d("testing", f.getAbsolutePath());
-
-
-
-                        try {
-                            FileOutputStream strm = new FileOutputStream(f);
-                            bm.compress(Bitmap.CompressFormat.PNG, 80, strm);
-                            strm.close();
-                            Log.d("testing", "YAS!");
-                            MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
-                                    UUID.randomUUID().toString() + ".png", "drawing");
-                            Log.d("testing", "OKAY LETS GO!");
-
-                            drawView.destroyDrawingCache();
-                        } catch (IOException e) {
-                            Log.d("testing", "crap");
-                            e.printStackTrace();
-                        }
-                    }*/
-
-
-                    /*
-                    File sdcard = Environment.getExternalStorageDirectory();
-                    File mediaDir;
-                    if (sdcard != null) {
-                        mediaDir = new File(sdcard, "DCIM/Camera");
-                        if (!mediaDir.exists()) {
-                            mediaDir.mkdirs();
-                            Toast savedToast = Toast.makeText(getApplicationContext(),
-                                    "HAHAH", Toast.LENGTH_SHORT);
-                            savedToast.show();
-                        }
-
-                        drawView.setDrawingCacheEnabled(true);
-
-                        verifyStoragePermissions(MainActivity.this);
-
-                        String imgSaved = MediaStore.Images.Media.insertImage(
-                                getContentResolver(), drawView.getDrawingCache(),
-                                UUID.randomUUID().toString()+".png", "drawing");
-
-                        if(imgSaved!=null){
-                            Toast savedToast = Toast.makeText(getApplicationContext(),
-                                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-                            savedToast.show();
-                        }
-                        else{
-                            Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-                            unsavedToast.show();
-                        }
-
-
-
-
-                        drawView.destroyDrawingCache();
-
-                    }*/
                 }
             });
             saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -396,47 +282,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
             });
             saveDialog.show();
         }
-        /*else if(view.getId()==R.id.new_btn){
-            AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
-            newDialog.setTitle("New drawing");
-            newDialog.setMessage("Start new drawing (you will lose the current drawing)?");
-            newDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                   // drawView.startNew();
-                    dialog.dismiss();
-                }
-            });
-            newDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    dialog.cancel();
-                }
-            });
-            newDialog.show();
-        }*/
     }
 
+    /**
+     * This method makes sure to set onClickListeners on all
+     * the relevant buttons involved in the doodle app. The onClick
+     * functions are defined above.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //verifyStoragePermissions(this);
-
-        senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
-
-
         drawView = (DoodleView)findViewById(R.id.drawing);
-        LinearLayout paintLayout = (LinearLayout)findViewById(R.id.paint_colors);
-        currPaint = (ImageButton)paintLayout.getChildAt(0);
-        currPaint.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.paint_pressed, null));
-
-        smallBrush = getResources().getInteger(R.integer.small_size);
-        mediumBrush = getResources().getInteger(R.integer.medium_size);
-        largeBrush = getResources().getInteger(R.integer.large_size);
-
-        //drawView.setBrushSize(mediumBrush);
         drawView.setBrushSize(50);
         drawView.setEraseSize(50);
 
@@ -458,9 +316,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
         saveBtn = (ImageButton)findViewById(R.id.save_btn);
         saveBtn.setOnClickListener(this);
-
     }
 
+    /**
+     * This function saves the current bitmap/image/picture
+     * to the gallery. This is only called when we have
+     * proper permissions to access the storage. 
+     */
     public void savePicture(){
         drawView.setDrawingCacheEnabled(true);
         MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
@@ -469,6 +331,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         drawView.destroyDrawingCache();
     }
 
+    /**
+     * This function makes sure to check we have
+     * Storage permission to save our files. If
+     * permission is already given then savePicture is called
+     * automatically.
+     */
     public void checkStoragePermissions(){
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
@@ -487,12 +355,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
         }
     }
 
+    /**
+     * Based on the choice in checkStoragePermissions, we can then
+     * call savePicture() to save the image on the canvas to the gallery.
+     * If permissions are not given, no savePictures are given.
+     */
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
             case REQUEST_EXTERNAL_STORAGE: {
 
-                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d("testing", "YAY WE ARE HERE");
                     Log.d("testing", permissions.toString());
                     Log.d("testing", grantResults.toString());
@@ -500,94 +373,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
                 }
                 return;
             }
-            /*case MY_PERMISSIONS_REQUEST_READ_CONTACTS: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }*/
-
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
-    }
-
-    /*
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            // For API 23+ you need to request the read/write permissions even if they are already in your manifest.
-            // See: http://developer.android.com/training/permissions/requesting.html
-            Log.d("testing", "I'm in here!!!");
-
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
-        }
-    }*/
-
-    public void paintClicked(View view){
-        //use chosen color
-        if(view!=currPaint){
-            //update color
-            ImageButton imgView = (ImageButton)view;
-            String color = view.getTag().toString();
-            drawView.setColor(color);
-            imgView.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.paint_pressed, null));
-            currPaint.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.paint, null));
-            currPaint=(ImageButton)view;
-        }
-    }
-
-
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-        Sensor mySensor = sensorEvent.sensor;
-
-        if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            float x = sensorEvent.values[0];
-            float y = sensorEvent.values[1];
-            float z = sensorEvent.values[2];
-
-            long curTime = System.currentTimeMillis();
-
-            if ((curTime - lastUpdate) > 100) {
-                long diffTime = (curTime - lastUpdate);
-                lastUpdate = curTime;
-
-                float speed = Math.abs(x + y + z - last_x - last_y - last_z)/ diffTime * 10000;
-
-                if (speed > SHAKE_THRESHOLD) {
-                    AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
-                    saveDialog.setTitle("ERASE EVERYTHIBNG YOU LOVE?!");
-                    saveDialog.setMessage("DO IT !!!?");
-                }
-
-                last_x = x;
-                last_y = y;
-                last_z = z;
-            }
-        }
-
-
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 }
