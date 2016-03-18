@@ -38,6 +38,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 import yuku.ambilwarna.AmbilWarnaDialog;
 
+/**
+ * The majority of the code was inspired from the following tutorials:
+ * http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-interface-creation--mobile-19021
+ * http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-touch-interaction--mobile-19202
+ * http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
+
+ * The ability to incorporate the colorpicker github library came from:
+ * https://stackoverflow.com/questions/21798694/add-github-library-as-dependency-to-android-studio-project
+ *
+ * Learning how to properly log came from:
+ * https://stackoverflow.com/questions/15425975/creating-a-simple-output-to-logcat
+ * https://developer.android.com/intl/zh-tw/reference/android/util/Log.html
+ */
 public class MainActivity extends AppCompatActivity implements OnClickListener{
 
 
@@ -46,13 +59,30 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     private ImageButton drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn;
 
 
+    //This code for this method was based on this:
+    // http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
     @Override
     public void onClick(View view){//respond to clicks
 
 
         //Opacity button is clicked
+
+        // Help for theses sections (especially seekbars) came from:
+        // http://javatechig.com/android/android-seekbar-example
+        // http://www.thaicreate.com/mobile/android-seekbar-alertdialog-popup.html
+        // http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
+        // https://stackoverflow.com/questions/8807569/how-to-display-some-value-on-seekbar-as-default
         if(view.getId()==R.id.opacity_btn){
 
+            // The opacity functionality came from
+            // http://code.tutsplus.com/tutorials/android-sdk-drawing-with-opacity--mobile-19682
+
+            //Dialog help/assistance came from
+            //https://androidresearch.wordpress.com/2012/04/16/creating-and-displaying-a-custom-dialog-in-android/
+            //http://www.cs.dartmouth.edu/~campbell/cs65/lecture13/lecture13.html
+            //https://developer.android.com/intl/zh-tw/guide/topics/ui/dialogs.html
+            //https://developer.android.com/intl/zh-tw/reference/android/support/v7/app/AppCompatDialog.html
+            //https://stackoverflow.com/questions/32405042/android-dialogfragment-title-not-showing
             final Dialog seekDialog = new AppCompatDialog(this);
             seekDialog.setTitle("Opacity level:");
             seekDialog.setContentView(R.layout.opacity_chooser);
@@ -118,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
             seekBrush.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
+                //Setting minimum for progress bar came from
+                // https://stackoverflow.com/questions/3490951/how-to-limit-seekbar
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if(progress < 5){
@@ -148,6 +180,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     }
                     //When the button is clicked we turn off erasing mode
                     //(assuming it is turned on in the first place).
+
+                    //Enabling and disabling came from
+                    // https://stackoverflow.com/questions/8743120/how-to-grey-out-a-button
+                    // https://stackoverflow.com/questions/4384890/how-to-disable-an-android-button
                     drawView.setErase(false);
                     opacityBtn.setEnabled(true);
                     opacityBtn.setAlpha(1f);
@@ -165,6 +201,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         // the doodle into erase mode! Like draw mode, users can select
         // the size of the eraser as well.
         }else if(view.getId()==R.id.erase_btn){
+
+
             final Dialog brushDialog = new AppCompatDialog(this);
             brushDialog.setTitle("Erase Width:");
             brushDialog.setContentView(R.layout.erase_chooser);
@@ -224,7 +262,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             brushDialog.show();
             //The colorwheel button is clicked; this allows the user to
             //select the color of the line they draw. The dialog
-            //is taken from https://github.com/yukuku/ambilwarna
+            //is taken from https://github.com/yukuku/ambilwarna and this example within
+            //that code:
+            // https://github.com/yukuku/ambilwarna/blob/master/demo/src/main/java/yuku/ambilwarna/demo/AmbilWarnaDemoActivity.java
         }else if(view.getId()==R.id.colorwheel_btn){
 
             AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, drawView.getColor(), new AmbilWarnaDialog.OnAmbilWarnaListener() {
@@ -288,6 +328,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
      * This method makes sure to set onClickListeners on all
      * the relevant buttons involved in the doodle app. The onClick
      * functions are defined above.
+     *
+     * This method again was based on:
+     * http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -318,10 +361,25 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         saveBtn.setOnClickListener(this);
     }
 
+    /***
+     * The following three functions were created through help
+     * by Dr. Froehlich and the following sources:
+     * https://developer.android.com/intl/zh-tw/training/permissions/requesting.html#perm-check
+     * http://android-er.blogspot.com/2015/04/save-bitmap-to-storage.html
+     * https://stackoverflow.com/questions/34597367/how-to-save-bitmap-image-into-my-gallery-folder-in-android
+     * https://stackoverflow.com/questions/4646913/android-how-to-use-mediascannerconnection-scanfile
+     * http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
+     * https://stackoverflow.com/questions/22610699/getdrawingcache-always-returns-the-same-bitmap
+     * http://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition/en
+     * https://github.com/googlesamples/android-RuntimePermissions
+     * https://stackoverflow.com/questions/23527767/open-failed-eacces-permission-denied
+     * https://stackoverflow.com/questions/33030933/android-6-0-open-failed-eacces-permission-denied
+     */
+
     /**
      * This function saves the current bitmap/image/picture
      * to the gallery. This is only called when we have
-     * proper permissions to access the storage. 
+     * proper permissions to access the storage.
      */
     public void savePicture(){
         drawView.setDrawingCacheEnabled(true);
