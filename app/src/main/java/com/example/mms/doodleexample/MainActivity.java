@@ -1,14 +1,23 @@
 package com.example.mms.doodleexample;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatDialog;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -17,6 +26,7 @@ import android.widget.LinearLayout;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.UUID;
 import android.provider.MediaStore;
 import android.app.AlertDialog;
@@ -28,14 +38,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
+
+public class MainActivity extends AppCompatActivity implements OnClickListener, SensorEventListener {
 
 
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    private SensorManager senSensorManager;
+    private Sensor senAccelerometer;
     private DoodleView drawView;
     private ImageButton currPaint, drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn;
     private float smallBrush, mediumBrush, largeBrush;
     int color = 0xffffff00;
+
+    private long lastUpdate = 0;
+    private float last_x, last_y, last_z;
+    private static final int SHAKE_THRESHOLD = 600;
 
     @Override
     public void onClick(View view){//respond to clicks
@@ -290,9 +316,41 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             saveDialog.setMessage("Save drawing to device Gallery?");
             saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    //save drawing
+                    Log.d("testing", "I GOT IT!");
+
+                    checkStoragePermissions();
+
+                    /*drawView.setDrawingCacheEnabled(true);
+                    Bitmap bm = drawView.getDrawingCache();
+
+                    Log.d("testing", bm.toString());
+
+                    File fPath = Environment.getExternalStorageDirectory();
+                    File f = null;
+                    f = new File(fPath, "drawPic1.png");
+
+                    Log.d("testing", f.getAbsolutePath());
 
 
+
+                        try {
+                            FileOutputStream strm = new FileOutputStream(f);
+                            bm.compress(Bitmap.CompressFormat.PNG, 80, strm);
+                            strm.close();
+                            Log.d("testing", "YAS!");
+                            MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
+                                    UUID.randomUUID().toString() + ".png", "drawing");
+                            Log.d("testing", "OKAY LETS GO!");
+
+                            drawView.destroyDrawingCache();
+                        } catch (IOException e) {
+                            Log.d("testing", "crap");
+                            e.printStackTrace();
+                        }
+                    }*/
+
+
+                    /*
                     File sdcard = Environment.getExternalStorageDirectory();
                     File mediaDir;
                     if (sdcard != null) {
@@ -306,75 +364,33 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
                         drawView.setDrawingCacheEnabled(true);
 
-                        String fname = UUID.randomUUID().toString() + ".png";
-                        File file = new File (mediaDir, fname);
-                        if (file.exists ()){
+                        verifyStoragePermissions(MainActivity.this);
+
+                        String imgSaved = MediaStore.Images.Media.insertImage(
+                                getContentResolver(), drawView.getDrawingCache(),
+                                UUID.randomUUID().toString()+".png", "drawing");
+
+                        if(imgSaved!=null){
                             Toast savedToast = Toast.makeText(getApplicationContext(),
-                                    "blah", Toast.LENGTH_SHORT);
+                                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
                             savedToast.show();
-
-                            file.delete ();
+                        }
+                        else{
+                            Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+                            unsavedToast.show();
                         }
 
-                        try {
-                            FileOutputStream out = new FileOutputStream(file); //from here it goes to catch block
-                            drawView.getDrawingCache().compress(Bitmap.CompressFormat.PNG, 90, out);
-                            out.flush();
-                            out.close();
-                            String[] paths = {file.toString()};
-                            String[] mimeTypes = {"/image/png"};
-                            MediaScannerConnection.scanFile(MainActivity.this, paths, mimeTypes, null);
-
-                            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://" + Environment.getExternalStorageDirectory())));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
 
 
 
+                        drawView.destroyDrawingCache();
 
-
-                    /*
-                    String imgSaved = MediaStore.Images.Media.insertImage(
-                            MainActivity.this.getContentResolver(), drawView.getDrawingCache(),
-                            UUID.randomUUID().toString() + ".png", "drawing");
-
-                    if(imgSaved != null) {
-                        Toast savedToast = Toast.makeText(getApplicationContext(),
-                                "blah", Toast.LENGTH_SHORT);
-                        savedToast.show();
-                    }else{
-                        Toast savedToast = Toast.makeText(getApplicationContext(),
-                                "blah2", Toast.LENGTH_SHORT);
-                        savedToast.show();
-                    }
-                    */
-
-                    drawView.destroyDrawingCache();
-
-
-                    /*
-                    drawView.setDrawingCacheEnabled(true);
-                    String imgSaved = MediaStore.Images.Media.insertImage(
-                            getContentResolver(), drawView.getDrawingCache(),
-                            UUID.randomUUID().toString()+".png", "drawing");
-
-                    if(imgSaved!=null){
-                        Toast savedToast = Toast.makeText(getApplicationContext(),
-                                "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
-                        savedToast.show();
-                    }
-                    else{
-                        Toast unsavedToast = Toast.makeText(getApplicationContext(),
-                                "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
-                        unsavedToast.show();
-                    }
-                    drawView.destroyDrawingCache();*/
+                    }*/
                 }
             });
-            saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
+            saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
                 }
             });
@@ -403,6 +419,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //verifyStoragePermissions(this);
+
+        senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        senAccelerometer = senSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        senSensorManager.registerListener(this, senAccelerometer , SensorManager.SENSOR_DELAY_NORMAL);
+
 
         drawView = (DoodleView)findViewById(R.id.drawing);
         LinearLayout paintLayout = (LinearLayout)findViewById(R.id.paint_colors);
@@ -438,6 +461,85 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
 
     }
 
+    public void savePicture(){
+        drawView.setDrawingCacheEnabled(true);
+        MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
+                    UUID.randomUUID().toString() + ".png", "drawing");
+        Log.d("testing", "OKAY LETS GO!");
+        drawView.destroyDrawingCache();
+    }
+
+    public void checkStoragePermissions(){
+        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        Log.d("testing", "SO FAR SO GOOD");
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+
+            Log.d("testing", "I'm in here!!!");
+
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }else{
+            savePicture();
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_EXTERNAL_STORAGE: {
+
+                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    Log.d("testing", "YAY WE ARE HERE");
+                    Log.d("testing", permissions.toString());
+                    Log.d("testing", grantResults.toString());
+                    savePicture();
+                }
+                return;
+            }
+            /*case MY_PERMISSIONS_REQUEST_READ_CONTACTS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }*/
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    /*
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            // For API 23+ you need to request the read/write permissions even if they are already in your manifest.
+            // See: http://developer.android.com/training/permissions/requesting.html
+            Log.d("testing", "I'm in here!!!");
+
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }*/
+
     public void paintClicked(View view){
         //use chosen color
         if(view!=currPaint){
@@ -449,8 +551,43 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             currPaint.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.paint, null));
             currPaint=(ImageButton)view;
         }
-
     }
 
 
+    @Override
+    public void onSensorChanged(SensorEvent sensorEvent) {
+        Sensor mySensor = sensorEvent.sensor;
+
+        if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float x = sensorEvent.values[0];
+            float y = sensorEvent.values[1];
+            float z = sensorEvent.values[2];
+
+            long curTime = System.currentTimeMillis();
+
+            if ((curTime - lastUpdate) > 100) {
+                long diffTime = (curTime - lastUpdate);
+                lastUpdate = curTime;
+
+                float speed = Math.abs(x + y + z - last_x - last_y - last_z)/ diffTime * 10000;
+
+                if (speed > SHAKE_THRESHOLD) {
+                    AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
+                    saveDialog.setTitle("ERASE EVERYTHIBNG YOU LOVE?!");
+                    saveDialog.setMessage("DO IT !!!?");
+                }
+
+                last_x = x;
+                last_y = y;
+                last_z = z;
+            }
+        }
+
+
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }
