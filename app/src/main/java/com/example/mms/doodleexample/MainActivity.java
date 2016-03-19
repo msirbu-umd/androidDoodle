@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.io.File;
@@ -53,11 +56,12 @@ import yuku.ambilwarna.AmbilWarnaDialog;
  */
 public class MainActivity extends AppCompatActivity implements OnClickListener{
 
-
+    private static int RESULT_LOAD_IMG = 1;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static final int REQUEST_EXTERNAL_OPEN_STORAGE = 2;
     private DoodleView drawView;
-    private ImageButton drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn;
-
+    private ImageButton drawBtn, opacityBtn, eraseBtn, colorwheelBtn, newBtn, saveBtn, openBtn;
+    String imgDecodableString;
 
     //This code for this method was based on this:
     // http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
@@ -311,8 +315,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 public void onClick(DialogInterface dialog, int which) {
                     Log.d("testing", "I GOT IT!");
                     //This method handles the permission and ultimately calls
-                    //savePicture()
-                    checkStoragePermissions();
+                    savePicture();
+                    //checkStoragePermissions();
                 }
             });
             saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -321,6 +325,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 }
             });
             saveDialog.show();
+        }else if(view.getId()==R.id.open_btn){
+            loadImagefromGallery(drawView);
+            //checkOpenStoragePermissions();
         }
     }
 
@@ -359,6 +366,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
         saveBtn = (ImageButton)findViewById(R.id.save_btn);
         saveBtn.setOnClickListener(this);
+
+        openBtn = (ImageButton)findViewById(R.id.open_btn);
+        openBtn.setOnClickListener(this);
+
+        //saveBtn.setEnabled(false);
+        //openBtn.setEnabled(false);
+
+        checkStoragePermissions();
     }
 
     /***
@@ -409,7 +424,26 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     REQUEST_EXTERNAL_STORAGE
             );
         }else{
-            savePicture();
+            //savePicture();
+        }
+    }
+
+    public void checkOpenStoragePermissions(){
+        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        Log.d("testing", "SO FAR SO GOOD");
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+
+            Log.d("testing", "I'm in here!!!");
+
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_EXTERNAL_OPEN_STORAGE
+            );
+        }else{
+            drawView = (DoodleView)findViewById(R.id.drawing);
+            loadImagefromGallery(drawView);
         }
     }
 
@@ -427,10 +461,94 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     Log.d("testing", "YAY WE ARE HERE");
                     Log.d("testing", permissions.toString());
                     Log.d("testing", grantResults.toString());
-                    savePicture();
+                    //savePicture();
+
+                    android.os.Process.killProcess(android.os.Process.myPid());
+
+                }else{
+                    openBtn.setEnabled(false);
+                    saveBtn.setEnabled(false);
+                    openBtn.setAlpha(0.5f);
+                    saveBtn.setAlpha(0.5f);
+                }
+                return;
+            }
+
+            case REQUEST_EXTERNAL_OPEN_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("testing", "YAY WE ARE HERE2222");
+                    Log.d("testing", permissions.toString());
+                    Log.d("testing", grantResults.toString());
+
+                    drawView = (DoodleView)findViewById(R.id.drawing);
+                    loadImagefromGallery(drawView);
+                    android.os.Process.killProcess(android.os.Process.myPid());
+
                 }
                 return;
             }
         }
+    }
+
+    public void loadImagefromGallery(View view) {
+        // Create intent to Open Image applications like Gallery, Google Photos
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // Start the Intent
+        startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            // When an Image is picked
+            if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+                    && null != data) {
+                // Get the Image from data
+
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                // Get the cursor
+                Cursor cursor = getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+                // Move to first row
+                cursor.moveToFirst();
+
+                Log.d("testing", "We are here1");
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                Log.d("testing", "We are here2");
+                imgDecodableString = cursor.getString(columnIndex);
+                Log.d("testing", "We are here3");
+                cursor.close();
+                Log.d("testing", "We are here4");
+
+                Log.d("testing", imgDecodableString);
+                //String filePath = cursor.getString(columnIndex);
+                Bitmap b = BitmapFactory.decodeFile(imgDecodableString);
+                Bitmap mb = b.copy(Bitmap.Config.ARGB_8888, true);
+                Log.d("testing", mb.toString());
+                Log.d("testing", "We are here5");
+                // Set the Image in ImageView after decoding the String
+                //drawView.loadBitmap(bitmap);
+                /*
+                imgView.setImageBitmap(BitmapFactory
+                        .decodeFile(imgDecodableString));*/
+
+                drawView = (DoodleView)findViewById(R.id.drawing);
+                drawView.loadBitmap(mb);
+
+                Log.d("testing", "We are here6");
+
+            } else {
+                Toast.makeText(this, "You haven't picked Image",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+                    .show();
+        }
+
     }
 }

@@ -59,6 +59,13 @@
             android:contentDescription="@string/save"
             android:src="@drawable/save" />
 
+        <ImageButton
+            android:id="@+id/open_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:contentDescription="@string/open"
+            android:src="@drawable/open" />
+
     </LinearLayout>
 
     <com.example.mms.doodleexample.DoodleView

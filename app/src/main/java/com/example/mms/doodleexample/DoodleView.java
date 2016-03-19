@@ -236,4 +236,10 @@ public class DoodleView extends View {
         invalidate();
     }
 
+    public void loadBitmap(Bitmap b){
+       canvasBitmap = b;
+       drawCanvas = new Canvas(canvasBitmap);
+        invalidate();
+    }
+
 }
