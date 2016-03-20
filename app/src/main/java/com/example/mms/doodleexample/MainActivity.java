@@ -259,7 +259,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     opacityBtn.setAlpha(0.5f);
                     colorwheelBtn.setEnabled(false);
                     colorwheelBtn.setAlpha(0.5f);
+
                     brushDialog.dismiss();
+
+                    Toast.makeText(getApplicationContext(), "Erase Mode -- Color & Opacity Disabled",
+                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Click Brush to return to Doodle Mode",
+                            Toast.LENGTH_LONG).show();
+
+
                 }
             });
 
@@ -314,7 +322,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     Log.d("testing", "I GOT IT!");
-                    //This method handles the permission and ultimately calls
+
+                    //This method saves the current bitmap to the gallery. See
+                    //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
+                    //with the app so if the user doesn't give us permission this button is disabled.
                     savePicture();
                     //checkStoragePermissions();
                 }
@@ -325,6 +336,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 }
             });
             saveDialog.show();
+            //This button opens an image from the gallery. See corresponding method for
+            //more details. NOTE: Permission are checked BEFORE a user even interacts
+            //with the app so if the user doesn't give us permission this button is disabled.
         }else if(view.getId()==R.id.open_btn){
             loadImagefromGallery(drawView);
             //checkOpenStoragePermissions();
@@ -370,9 +384,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         openBtn = (ImageButton)findViewById(R.id.open_btn);
         openBtn.setOnClickListener(this);
 
-        //saveBtn.setEnabled(false);
-        //openBtn.setEnabled(false);
-
+        //Permissions are now checked as soon as the app is created. This is because
+        //of a bug where the app must be restarted in order for loading an image
+        //from a gallery is allowed, even after the user grants permission.
+        //See: https://stackoverflow.com/questions/32699129/android-6-0-needs-restart-after-granting-user-permission-at-runtime
+        //and https://stackoverflow.com/questions/33062006/cant-write-to-external-storage-unless-app-is-restarted-after-granting-permissio
         checkStoragePermissions();
     }
 
@@ -394,21 +410,32 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     /**
      * This function saves the current bitmap/image/picture
      * to the gallery. This is only called when we have
-     * proper permissions to access the storage.
+     * proper permissions to access the storage. This method was
      */
     public void savePicture(){
         drawView.setDrawingCacheEnabled(true);
-        MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
+        String imgSaved = MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
                     UUID.randomUUID().toString() + ".png", "drawing");
         Log.d("testing", "OKAY LETS GO!");
+
+        if(imgSaved!=null){
+            Toast savedToast = Toast.makeText(getApplicationContext(),
+                    "Drawing saved to Gallery!", Toast.LENGTH_SHORT);
+            savedToast.show();
+        }
+        else{
+            Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                    "Oops! Image could not be saved.", Toast.LENGTH_SHORT);
+            unsavedToast.show();
+        }
+
         drawView.destroyDrawingCache();
     }
 
     /**
      * This function makes sure to check we have
-     * Storage permission to save our files. If
-     * permission is already given then savePicture is called
-     * automatically.
+     * Storage permission to save our file or open an image from the gallery. If
+     * permission is granted then nothing else is done.
      */
     public void checkStoragePermissions(){
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -423,34 +450,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_EXTERNAL_STORAGE
             );
-        }else{
-            //savePicture();
         }
     }
 
-    public void checkOpenStoragePermissions(){
-        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        Log.d("testing", "SO FAR SO GOOD");
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-
-            Log.d("testing", "I'm in here!!!");
-
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_EXTERNAL_OPEN_STORAGE
-            );
-        }else{
-            drawView = (DoodleView)findViewById(R.id.drawing);
-            loadImagefromGallery(drawView);
-        }
-    }
 
     /**
-     * Based on the choice in checkStoragePermissions, we can then
-     * call savePicture() to save the image on the canvas to the gallery.
-     * If permissions are not given, no savePictures are given.
+     * Based on the choice in checkStoragePermissions, we can either allow
+     * the user to save their image (or load images) into the app (because they
+     * have given us permission) or we disable those buttons as they are not
+     * allowed.
      */
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -461,35 +469,39 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     Log.d("testing", "YAY WE ARE HERE");
                     Log.d("testing", permissions.toString());
                     Log.d("testing", grantResults.toString());
-                    //savePicture();
 
+
+                    //This is a "hack" to restart the app in order to make sure
+                    //the permissions are "on" for the read and write to external storage.
+                    //This was taken because of research found here:
+                    //https://stackoverflow.com/questions/32699129/android-6-0-needs-restart-after-granting-user-permission-at-runtime
+                    //https://stackoverflow.com/questions/33062006/cant-write-to-external-storage-unless-app-is-restarted-after-granting-permissio
                     android.os.Process.killProcess(android.os.Process.myPid());
 
                 }else{
+                    //If permission is denied you can disable the buttons as trying
+                    //to read or write to external storage will return an error!
                     openBtn.setEnabled(false);
                     saveBtn.setEnabled(false);
                     openBtn.setAlpha(0.5f);
                     saveBtn.setAlpha(0.5f);
-                }
-                return;
-            }
 
-            case REQUEST_EXTERNAL_OPEN_STORAGE: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("testing", "YAY WE ARE HERE2222");
-                    Log.d("testing", permissions.toString());
-                    Log.d("testing", grantResults.toString());
-
-                    drawView = (DoodleView)findViewById(R.id.drawing);
-                    loadImagefromGallery(drawView);
-                    android.os.Process.killProcess(android.os.Process.myPid());
-
+                    Toast.makeText(getApplicationContext(), "Permission Denied\nSaving and Loading Images Disabled",
+                            Toast.LENGTH_LONG).show();
                 }
                 return;
             }
         }
     }
 
+    /**
+     * These two functions were created to open an image from the gallery.
+     * Code for this method was based on the following sources:
+     * http://programmerguru.com/android-tutorial/how-to-pick-image-from-gallery/
+     * http://tjkannan.blogspot.in/2012/01/load-image-from-camera-or-gallery.html
+     * https://stackoverflow.com/questions/14174104/how-to-set-a-bitmap-image-in-canvas-of-my-custom-view
+     * http://viralpatel.net/blogs/pick-image-from-galary-android-app/
+     */
     public void loadImagefromGallery(View view) {
         // Create intent to Open Image applications like Gallery, Google Photos
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
@@ -527,7 +539,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 Log.d("testing", imgDecodableString);
                 //String filePath = cursor.getString(columnIndex);
                 Bitmap b = BitmapFactory.decodeFile(imgDecodableString);
+
+                //Important info from:
+                //https://stackoverflow.com/questions/26016655/draw-with-a-canvas-over-an-image-in-android-java
+                //and http://sudarnimalan.blogspot.com/2011/09/android-convert-immutable-bitmap-into.html
+                //https://stackoverflow.com/questions/5176441/drawable-image-on-a-canvas
                 Bitmap mb = b.copy(Bitmap.Config.ARGB_8888, true);
+
                 Log.d("testing", mb.toString());
                 Log.d("testing", "We are here5");
                 // Set the Image in ImageView after decoding the String

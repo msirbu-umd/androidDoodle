@@ -107,6 +107,7 @@ public class DoodleView extends View {
         if(erase){
             lastColor = getColor();
             drawPaint.setColor(Color.WHITE);
+            drawPaint.setAlpha(255);
             //drawPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         }
         else{
@@ -117,6 +118,7 @@ public class DoodleView extends View {
                 drawPaint.setColor(lastColor);
                 lastColor = -1;
             }
+            drawPaint.setAlpha(paintAlpha);
             drawPaint.setXfermode(null);
         }
     }
