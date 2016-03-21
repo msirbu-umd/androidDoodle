@@ -16,7 +16,7 @@
 [10] https://stackoverflow.com/questions/16560846/erase-functionality-in-android-finger-paint <br />
 [11] https://stackoverflow.com/questions/10494442/android-paint-porterduff-mode-clear <br />
 [12] https://stackoverflow.com/questions/8149188/how-to-program-for-eraserpaint-as-on-canvas-in-android <br />
-[13] http://code.tutsplus.com/tutorials/android-sdk-drawing-with-opacity--mobile-19682 <br />
+[13] http://code.tutsplus.com/tutorials/android-sdk-drawing-with-opacity--mobile-19682 
 [14] https://github.com/yukuku/ambilwarna/blob/master/demo/src/main/java/yuku/ambilwarna/demo/AmbilWarnaDemoActivity.java <br />
 [15] https://stackoverflow.com/questions/21798694/add-github-library-as-dependency-to-android-studio-project <br />
 [16] https://stackoverflow.com/questions/15425975/creating-a-simple-output-to-logcat <br />
