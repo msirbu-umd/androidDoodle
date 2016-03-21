@@ -231,7 +231,8 @@ public class DoodleView extends View {
 
     /**
      * Function used to clear the canvas and start afresh!
-     * Source: http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
+     * Sources: http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
+     * https://stackoverflow.com/questions/18387814/drawing-on-canvas-porterduff-mode-clear-draws-black-why
      */
     public void startNew(){
         drawCanvas.drawColor(Color.WHITE);
