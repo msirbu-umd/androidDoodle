@@ -1,8 +1,23 @@
-# Running the code
+## Running the code
 
-# Sources Used 
+1) Download the code as a zip file. <br />
+2) In the folder it was saved, extract here (I used 7zip) <br />
+3) Open Android Studio <br />
+4) On the quick start menu click Import project (Eclipse ADT, Gradle, etc.) <br />
+5) Navigate to where you extracted the files, you should see androidDoodle-Sirbu (with the android studio symbol) 
+in that location <br />
+6) Click on adroidDoodle-Sirbu and click ok <br />
+7) The project should be loaded in. <br /> 
+8) Click on 1.: Project to see scripts [Not Necessary] <br />
+9) Click on Build > Rebuild Project <br />
+10) Then click on the Green Play (Run) button to start the app <br ?>
+11) The first time you run the app, make sure to allow permissions <br />
 
-### Actual source code also shows which links helped with what sections of the code
+NOTE: I used a Nexus 5 with Android 6 and API 23 for my project. 
+
+## Sources Used 
+
+#### Actual source code also shows which links helped with what sections of the code
 
 [1] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-interface-creation--mobile-19021 <br />
 [2] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-touch-interaction--mobile-19202 <br />
