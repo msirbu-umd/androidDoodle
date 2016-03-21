@@ -321,7 +321,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             saveDialog.setMessage("Save drawing to device Gallery?");
             saveDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
-                    Log.d("testing", "I GOT IT!");
 
                     //This method saves the current bitmap to the gallery. See
                     //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
@@ -416,7 +415,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         drawView.setDrawingCacheEnabled(true);
         String imgSaved = MediaStore.Images.Media.insertImage(getContentResolver(), drawView.getDrawingCache(),
                     UUID.randomUUID().toString() + ".png", "drawing");
-        Log.d("testing", "OKAY LETS GO!");
 
         if(imgSaved!=null){
             Toast savedToast = Toast.makeText(getApplicationContext(),
@@ -440,10 +438,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     public void checkStoragePermissions(){
         int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-        Log.d("testing", "SO FAR SO GOOD");
         if (permission != PackageManager.PERMISSION_GRANTED) {
-
-            Log.d("testing", "I'm in here!!!");
 
             ActivityCompat.requestPermissions(
                     this,
@@ -466,10 +461,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             case REQUEST_EXTERNAL_STORAGE: {
 
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("testing", "YAY WE ARE HERE");
-                    Log.d("testing", permissions.toString());
-                    Log.d("testing", grantResults.toString());
-
 
                     //This is a "hack" to restart the app in order to make sure
                     //the permissions are "on" for the read and write to external storage.
@@ -528,15 +519,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 // Move to first row
                 cursor.moveToFirst();
 
-                Log.d("testing", "We are here1");
                 int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                Log.d("testing", "We are here2");
                 imgDecodableString = cursor.getString(columnIndex);
-                Log.d("testing", "We are here3");
                 cursor.close();
-                Log.d("testing", "We are here4");
 
-                Log.d("testing", imgDecodableString);
                 //String filePath = cursor.getString(columnIndex);
                 Bitmap b = BitmapFactory.decodeFile(imgDecodableString);
 
@@ -546,18 +532,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 //https://stackoverflow.com/questions/5176441/drawable-image-on-a-canvas
                 Bitmap mb = b.copy(Bitmap.Config.ARGB_8888, true);
 
-                Log.d("testing", mb.toString());
-                Log.d("testing", "We are here5");
-                // Set the Image in ImageView after decoding the String
-                //drawView.loadBitmap(bitmap);
-                /*
-                imgView.setImageBitmap(BitmapFactory
-                        .decodeFile(imgDecodableString));*/
-
                 drawView = (DoodleView)findViewById(R.id.drawing);
                 drawView.loadBitmap(mb);
-
-                Log.d("testing", "We are here6");
 
             } else {
                 Toast.makeText(this, "You haven't picked Image",

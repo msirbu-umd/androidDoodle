@@ -234,18 +234,15 @@ public class DoodleView extends View {
      * Source: http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
      */
     public void startNew(){
-        //drawCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
         drawCanvas.drawColor(Color.WHITE);
-        /*Paint paint = new Paint();
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        drawCanvas.drawPaint(paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));*/
         invalidate();
     }
 
+    /**
+     * Helper function used to load a previously saved bitmap/image.
+    */
     public void loadBitmap(Bitmap b){
        canvasBitmap = b;
-        //drawCanvas.drawColor(Color.WHITE);
        drawCanvas = new Canvas(canvasBitmap);
         invalidate();
     }
