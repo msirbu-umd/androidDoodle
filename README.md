@@ -11,7 +11,7 @@ in that location <br />
 8) Click on 1.: Project to see scripts [Not Necessary] <br />
 9) Click on Build > Rebuild Project <br />
 10) Then click on the Green Play (Run) button to start the app <br ?>
-11) The first time you run the app, make sure to allow permissions <br />
+11) The first time you run the app, make sure to allow storage permissions <br />
 
 NOTE: I used a Nexus 5 with Android 6 and API 23 for my project. 
 
