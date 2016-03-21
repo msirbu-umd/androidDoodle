@@ -4,7 +4,7 @@
 
 ### Actual source code also shows which links helped with what sections of the code
 
-[1] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-interface-creation--mobile-19021
+[1] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-interface-creation--mobile-19021 <br />
 [2] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-touch-interaction--mobile-19202
 [3] http://code.tutsplus.com/tutorials/android-sdk-create-a-drawing-app-essential-functionality--mobile-19328
 [4] http://www.valokafor.com/android-drawing-app-tutorial-part-1/
