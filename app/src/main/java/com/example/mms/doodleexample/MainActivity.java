@@ -125,6 +125,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 @Override
                 public void onClick(View v) {
                     //Set a minimum opacity level 5%
+                    //Setting minimum for progress bar came from
+                    // https://stackoverflow.com/questions/3490951/how-to-limit-seekbar
                     if(seekOpq.getProgress()  > 5) {
                         drawView.setPaintAlpha(seekOpq.getProgress());
                     }else{
@@ -152,8 +154,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
 
             seekBrush.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
-                //Setting minimum for progress bar came from
-                // https://stackoverflow.com/questions/3490951/how-to-limit-seekbar
+
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                     if(progress < 5){
@@ -272,11 +273,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             });
 
             brushDialog.show();
+
             //The colorwheel button is clicked; this allows the user to
-            //select the color of the line they draw. The dialog
-            //is taken from https://github.com/yukuku/ambilwarna and this example within
-            //that code:
-            // https://github.com/yukuku/ambilwarna/blob/master/demo/src/main/java/yuku/ambilwarna/demo/AmbilWarnaDemoActivity.java
+            //select the color of the line they draw. The dialog is taken from
+            //https://github.com/yukuku/ambilwarna and within that github repo this
+            //code file https://git.io/vayLi shows how to use it.
         }else if(view.getId()==R.id.colorwheel_btn){
 
             AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, drawView.getColor(), new AmbilWarnaDialog.OnAmbilWarnaListener() {
@@ -292,6 +293,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 }
             });
             dialog.show();
+
             //Button that clears the drawing. This section calls the startNew() function
             //in DoodleView to clear the canvas. Of course, it make sures to ask
             //users to confirm that they want to clear the canvas.
@@ -313,7 +315,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             });
 
             newDialog.show();
-            //The button that saves an image to the gallery.
+
+            //This code is executed when the save button is clicked to save the drawing.
+            // NOTE: Permission are checked BEFORE a user even interacts with the app so
+            // if the user doesn't give us permission this button is disabled.
         }else if(view.getId()==R.id.save_btn){
             //save drawing
             AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
@@ -323,10 +328,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 public void onClick(DialogInterface dialog, int which) {
 
                     //This method saves the current bitmap to the gallery. See
-                    //corresponding method for more details. NOTE: Permission are checked BEFORE a user even interacts
-                    //with the app so if the user doesn't give us permission this button is disabled.
+                    //corresponding method for more details.
                     savePicture();
-                    //checkStoragePermissions();
+
                 }
             });
             saveDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -335,12 +339,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 }
             });
             saveDialog.show();
-            //This button opens an image from the gallery. See corresponding method for
-            //more details. NOTE: Permission are checked BEFORE a user even interacts
+
+            //This code is called when button clicks open file/image button. See corresponding
+            // method for more details. NOTE: Permission are checked BEFORE a user even interacts
             //with the app so if the user doesn't give us permission this button is disabled.
         }else if(view.getId()==R.id.open_btn){
+            //This method loads a previous image from the gallery. See
+            //method for mall details.
             loadImagefromGallery(drawView);
-            //checkOpenStoragePermissions();
+
         }
     }
 
@@ -365,6 +372,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         drawBtn.setOnClickListener(this);
 
 
+        //Setting all the listeners for the relevant menu buttons.
         opacityBtn = (ImageButton)findViewById(R.id.opacity_btn);
         opacityBtn.setOnClickListener(this);
 
@@ -526,10 +534,10 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                 //String filePath = cursor.getString(columnIndex);
                 Bitmap b = BitmapFactory.decodeFile(imgDecodableString);
 
-                //Important info from:
-                //https://stackoverflow.com/questions/26016655/draw-with-a-canvas-over-an-image-in-android-java
-                //and http://sudarnimalan.blogspot.com/2011/09/android-convert-immutable-bitmap-into.html
-                //https://stackoverflow.com/questions/5176441/drawable-image-on-a-canvas
+                /*Important info from:
+                 *https://stackoverflow.com/questions/26016655/draw-with-a-canvas-over-an-image-in-android-java
+                 *and http://sudarnimalan.blogspot.com/2011/09/android-convert-immutable-bitmap-into.html
+                 *https://stackoverflow.com/questions/5176441/drawable-image-on-a-canvas*/
                 Bitmap mb = b.copy(Bitmap.Config.ARGB_8888, true);
 
                 drawView = (DoodleView)findViewById(R.id.drawing);
